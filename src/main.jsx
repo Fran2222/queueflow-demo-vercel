@@ -82,6 +82,7 @@ function TopNav() {
   const links = [
     ['/', 'Overview'],
     ['/demo', 'Demo Portal'],
+    ['/demo/control-room', 'All-in-One'],
     ['/demo/kiosk', 'Kiosk'],
     ['/demo/staff', 'Staff'],
     ['/demo/monitor', 'Monitor'],
@@ -126,8 +127,8 @@ function LandingPage() {
             data or production code.
           </p>
           <div className="cta-row">
-            <button className="btn primary big" onClick={() => navigate('/demo')}>
-              Start Interactive Demo <ArrowRight size={18} />
+            <button className="btn primary big" onClick={() => navigate('/demo/control-room')}>
+              Open All-in-One Demo <ArrowRight size={18} />
             </button>
             <button className="btn secondary big" onClick={() => navigate('/demo/admin')}>
               Reset / Inspect Data <Settings2 size={18} />
@@ -174,6 +175,7 @@ function LandingPage() {
 
 function DemoPortal() {
   const portals = [
+    { path: '/demo/control-room', icon: <Cpu />, title: 'All-in-One Command Center', desc: 'Kiosk, staff console, live monitor, queue lists, counters, and activity in one screen.', tag: 'Recommended' },
     { path: '/demo/kiosk', icon: <Ticket />, title: 'Kiosk Ticketing', desc: 'Client-facing service and ticket generation flow.', tag: 'Start here' },
     { path: '/demo/staff', icon: <LayoutDashboard />, title: 'Staff Console', desc: 'Call and manage the live waiting queue.', tag: 'Operator view' },
     { path: '/demo/monitor', icon: <Monitor />, title: 'Live Display Monitor', desc: 'Large-screen now-serving experience.', tag: 'TV display' },
@@ -538,6 +540,205 @@ function AdminPage() {
   );
 }
 
+
+function AllInOnePage() {
+  const [state, refresh] = useQueueState();
+  const [counterId, setCounterId] = useState(state.counters[0]?.id || 'counter-1');
+  const [selectedService, setSelectedService] = useState(state.services[0]?.id || 'general');
+  const [priority, setPriority] = useState(false);
+  const [toast, setToast] = useState('Command center ready. Generate a ticket or call the next customer.');
+  const [clock, setClock] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setClock(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const metrics = getDashboardMetrics(state);
+  const activeService = state.services.find((service) => service.id === selectedService) || state.services[0];
+  const current = state.tickets.find((ticket) => ticket.id === state.currentByCounter[counterId]);
+  const serving = state.tickets
+    .filter((ticket) => ticket.status === 'serving')
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+  const headline = serving[0];
+  const waiting = state.tickets
+    .filter((ticket) => ticket.status === 'waiting')
+    .sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority ? -1 : 1;
+      return new Date(a.createdAt) - new Date(b.createdAt);
+    });
+  const done = state.tickets
+    .filter((ticket) => ticket.status === 'done')
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))
+    .slice(0, 4);
+
+  function runAction(label, fn) {
+    const result = fn();
+    setToast(result ? `${label}: ${result.number}` : 'No active/waiting ticket available.');
+    refresh();
+  }
+
+  function generateTicket(transaction) {
+    const ticket = addTicket(activeService.id, transaction, priority);
+    setToast(`${ticket.number} generated from kiosk panel.`);
+    refresh();
+  }
+
+  function handleReset() {
+    resetDemo();
+    refresh();
+    setToast('Demo data reset. Sample queue restored.');
+  }
+
+  return (
+    <Shell full>
+      <TopNav />
+      <main className="container control-room">
+        <section className="control-room-hero glass-panel">
+          <div>
+            <div className="eyebrow"><Cpu size={16} /> One-Page Operations Vision</div>
+            <h1>Queue command center.</h1>
+            <p>All important demo views in one screen: kiosk ticketing, staff controls, live monitor, active counters, waiting queue, and activity feed.</p>
+          </div>
+          <div className="control-room-clock">
+            <small>LIVE DEMO TIME</small>
+            <strong>{clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</strong>
+          </div>
+        </section>
+
+        <section className="control-room-stats">
+          <Metric label="Waiting" value={metrics.waiting} icon={<TimerReset />} />
+          <Metric label="Serving" value={metrics.serving} icon={<BellRing />} />
+          <Metric label="Priority" value={metrics.priority} icon={<Zap />} />
+          <Metric label="Completed" value={metrics.done} icon={<CheckCircle2 />} />
+        </section>
+
+        <section className="control-room-grid">
+          <article className="glass-panel aio-monitor aio-card">
+            <div className="aio-card-head">
+              <span><Monitor size={16} /> Live Display Monitor</span>
+              <small>{serving.length} active</small>
+            </div>
+            <div className="aio-now-serving">
+              <div className="scanline" />
+              <small>{headline?.serviceName || 'STANDBY'}</small>
+              <h2>{headline?.number || '---'}</h2>
+              <p>{headline ? `Proceed to ${headline.counterName}` : 'No ticket is being served yet.'}</p>
+            </div>
+            <div className="aio-counter-strip">
+              {state.counters.map((counter) => {
+                const ticket = state.tickets.find((item) => item.id === state.currentByCounter[counter.id]);
+                return (
+                  <div key={counter.id}>
+                    <small>{counter.name}</small>
+                    <strong>{ticket?.number || '---'}</strong>
+                  </div>
+                );
+              })}
+            </div>
+          </article>
+
+          <article className="glass-panel aio-staff aio-card">
+            <div className="aio-card-head">
+              <span><LayoutDashboard size={16} /> Staff Console</span>
+              <select value={counterId} onChange={(event) => setCounterId(event.target.value)}>
+                {state.counters.map((counter) => <option key={counter.id} value={counter.id}>{counter.name}</option>)}
+              </select>
+            </div>
+            <div className="aio-current-ticket">
+              <small>Currently Serving</small>
+              <h3>{current?.number || 'Standby'}</h3>
+              <p>{current ? `${current.serviceName} · ${current.transaction}` : 'Call next ticket to begin.'}</p>
+            </div>
+            <div className="aio-actions">
+              <button className="btn primary" onClick={() => runAction('Called', () => callNext(counterId))}><BellRing size={16} /> Call Next</button>
+              <button className="btn warning" onClick={() => runAction('Recalled', () => recallCurrent(counterId))}><RotateCcw size={16} /> Recall</button>
+              <button className="btn secondary" onClick={() => runAction('Passed', () => passCurrent(counterId))}>Pass</button>
+              <button className="btn success" onClick={() => runAction('Done', () => completeCurrent(counterId))}><CheckCircle2 size={16} /> Done</button>
+            </div>
+            <div className="aio-toast"><Activity size={16} /> {toast}</div>
+          </article>
+
+          <article className="glass-panel aio-kiosk aio-card">
+            <div className="aio-card-head">
+              <span><QrCode size={16} /> Kiosk Ticket Generator</span>
+              <button className="mini-reset" onClick={handleReset}><RotateCcw size={14} /> Reset</button>
+            </div>
+            <div className="aio-service-pills">
+              {state.services.map((service) => (
+                <button key={service.id} className={service.id === selectedService ? 'active' : ''} onClick={() => setSelectedService(service.id)}>
+                  {service.code} · {service.name}
+                </button>
+              ))}
+            </div>
+            <div className="toggle-row compact">
+              <button className={!priority ? 'active' : ''} onClick={() => setPriority(false)}>Regular</button>
+              <button className={priority ? 'active' : ''} onClick={() => setPriority(true)}>Priority</button>
+            </div>
+            <div className="aio-transaction-grid">
+              {activeService.transactions.slice(0, 4).map((transaction) => (
+                <button key={transaction} onClick={() => generateTicket(transaction)}>
+                  <span><ScanLine size={15} /> {transaction}</span>
+                  <ArrowRight size={15} />
+                </button>
+              ))}
+            </div>
+          </article>
+
+          <article className="glass-panel aio-queue aio-card">
+            <div className="aio-card-head">
+              <span><TimerReset size={16} /> Waiting Queue</span>
+              <small>{waiting.length} pending</small>
+            </div>
+            <div className="aio-list">
+              {waiting.slice(0, 7).map((ticket) => (
+                <div key={ticket.id} className={ticket.priority ? 'priority' : ''}>
+                  <strong>{ticket.number}</strong>
+                  <span>{ticket.serviceName}</span>
+                  <small>{formatTime(ticket.createdAt)} · {ticket.priority ? 'Priority' : 'Regular'}</small>
+                </div>
+              ))}
+              {!waiting.length && <p className="empty">No waiting tickets.</p>}
+            </div>
+          </article>
+
+          <article className="glass-panel aio-completed aio-card">
+            <div className="aio-card-head">
+              <span><CheckCircle2 size={16} /> Recently Completed</span>
+              <small>{metrics.done} done</small>
+            </div>
+            <div className="aio-list compact-list">
+              {done.map((ticket) => (
+                <div key={ticket.id}>
+                  <strong>{ticket.number}</strong>
+                  <span>{ticket.counterName || ticket.serviceName}</span>
+                  <small>{formatTime(ticket.updatedAt)}</small>
+                </div>
+              ))}
+              {!done.length && <p className="empty">No completed tickets yet.</p>}
+            </div>
+          </article>
+
+          <article className="glass-panel aio-activity aio-card">
+            <div className="aio-card-head">
+              <span><Activity size={16} /> Activity Feed</span>
+              <small>live local state</small>
+            </div>
+            <div className="aio-feed">
+              {state.activity.slice(0, 6).map((item) => (
+                <div key={item.id}>
+                  <small>{formatTime(item.time)}</small>
+                  <p>{item.message}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+      </main>
+    </Shell>
+  );
+}
+
 function NotFound() {
   return (
     <Shell>
@@ -556,6 +757,7 @@ function App() {
   return useMemo(() => {
     if (path === '/') return <LandingPage />;
     if (path === '/demo') return <DemoPortal />;
+    if (path === '/demo/control-room') return <AllInOnePage />;
     if (path === '/demo/kiosk') return <KioskPage />;
     if (path === '/demo/ticket') return <TicketPage />;
     if (path === '/demo/staff') return <StaffPage />;

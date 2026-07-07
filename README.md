@@ -55,3 +55,7 @@ Open the local URL shown in the terminal.
 ## Safety Notes
 
 This is a frontend-only product preview. It is not connected to a database or production backend. Data is stored only in the visitor's browser localStorage and can be reset anytime from the Admin Demo page.
+
+## One-Page Command Center
+
+Added `/demo/control-room` as the recommended demo view. It combines kiosk ticket generation, staff counter controls, live monitor display, active counters, waiting queue, completed tickets, and activity feed in one page for client walkthroughs.
