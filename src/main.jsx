@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { Analytics } from '@vercel/analytics/react';
 import {
   Activity,
   ArrowRight,
@@ -1001,7 +1002,7 @@ function NotFound() {
 
 function App() {
   const path = usePath();
-  return useMemo(() => {
+  const content = useMemo(() => {
     if (path === '/') return <LandingPage />;
     if (path === '/demo') return <DemoPortal />;
     if (path === '/demo/control-room') return <AllInOnePage />;
@@ -1012,6 +1013,12 @@ function App() {
     if (path === '/demo/admin') return <AdminPage />;
     return <NotFound />;
   }, [path]);
+  return (
+    <>
+      {content}
+      <Analytics />
+    </>
+  );
 }
 
 createRoot(document.getElementById('root')).render(<App />);
