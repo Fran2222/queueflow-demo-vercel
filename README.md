@@ -59,3 +59,8 @@ This is a frontend-only product preview. It is not connected to a database or pr
 ## One-Page Command Center
 
 Added `/demo/control-room` as the recommended demo view. It combines kiosk ticket generation, staff counter controls, live monitor display, active counters, waiting queue, completed tickets, and activity feed in one page for client walkthroughs.
+
+
+## Demo sound
+
+The demo uses browser Web Audio for notification sounds, so no audio files or client assets are required. Browser autoplay rules may block sound until a user interaction happens. Click **Enable Sound** once on the demo page or monitor page, then ticket calls, recalls, completions, and ticket generation will play notification tones.

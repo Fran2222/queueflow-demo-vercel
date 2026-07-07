@@ -697,3 +697,258 @@ select {
   }
   .control-room-clock { text-align: left; width: 100%; }
 }
+
+.sound-pill { gap: 7px; }
+.monitor-actions { display: flex; align-items: center; gap: 12px; }
+.monitor-actions strong { min-width: 82px; text-align: right; }
+@media (max-width: 720px) { .monitor-actions { width: 100%; justify-content: space-between; } }
+
+/* Control-room clarity upgrade + guided tutorial */
+.workflow-steps {
+  margin: 0 0 14px;
+  padding: 16px 18px;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+}
+.workflow-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: #d6f6ff;
+  font-weight: 950;
+  letter-spacing: .01em;
+  margin-bottom: 12px;
+}
+.workflow-track {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.workflow-track span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid rgba(148, 163, 184, .18);
+  background: rgba(255, 255, 255, .045);
+  border-radius: 999px;
+  min-height: 36px;
+  padding: 0 12px;
+}
+.workflow-track strong {
+  color: #aee9ff;
+  font-size: 11px;
+  letter-spacing: .12em;
+}
+
+.section-frame {
+  border: 1px solid rgba(148, 163, 184, .26);
+  box-shadow:
+    0 22px 70px rgba(0, 0, 0, .38),
+    inset 0 0 0 1px rgba(255, 255, 255, .045),
+    inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+.section-frame::after {
+  content: attr(data-section);
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  color: rgba(174, 233, 255, .12);
+  font-size: 11px;
+  font-weight: 950;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  pointer-events: none;
+}
+.section-ribbon {
+  position: absolute;
+  top: 0;
+  right: 18px;
+  padding: 7px 12px;
+  border: 1px solid rgba(33, 212, 253, .28);
+  border-top: 0;
+  border-radius: 0 0 14px 14px;
+  color: #aee9ff;
+  background: linear-gradient(135deg, rgba(33, 212, 253, .16), rgba(55, 119, 255, .12));
+  font-size: 10px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  z-index: 2;
+}
+.section-description {
+  margin: -5px 0 14px;
+  color: #aebed4;
+  font-size: 12.5px;
+  line-height: 1.55;
+  max-width: 96%;
+  position: relative;
+  z-index: 1;
+}
+.aio-card-head {
+  padding-right: 92px;
+}
+.aio-staff .aio-card-head {
+  padding-right: 0;
+}
+.aio-card-head > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: #e5f7ff;
+  font-weight: 950;
+  letter-spacing: -.01em;
+}
+.aio-card-head > span svg {
+  color: #8deaff;
+}
+.aio-monitor { border-color: rgba(33, 212, 253, .34); }
+.aio-staff { border-color: rgba(55, 119, 255, .36); }
+.aio-kiosk { border-color: rgba(45, 212, 191, .32); }
+.aio-queue { border-color: rgba(139, 92, 246, .32); }
+.aio-completed { border-color: rgba(52, 211, 153, .30); }
+.aio-activity { border-color: rgba(251, 191, 36, .24); }
+
+.floating-tutorial {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 90;
+  min-height: 54px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: #04111f;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #aee9ff, #21d4fd 48%, #3777ff);
+  box-shadow: 0 18px 54px rgba(33, 212, 253, .38), 0 0 0 1px rgba(255,255,255,.22) inset;
+  font-weight: 950;
+  animation: tutorialPulse 2.6s ease-in-out infinite;
+}
+@keyframes tutorialPulse {
+  0%, 100% { transform: translateY(0); box-shadow: 0 18px 54px rgba(33, 212, 253, .32); }
+  50% { transform: translateY(-3px); box-shadow: 0 28px 70px rgba(33, 212, 253, .52); }
+}
+
+.tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, transparent 20%, rgba(1, 7, 18, .44) 64%);
+}
+.tour-card {
+  position: fixed;
+  right: 24px;
+  top: 112px;
+  width: min(420px, calc(100vw - 42px));
+  border-radius: 28px;
+  padding: 24px;
+  pointer-events: auto;
+  z-index: 100;
+  animation: rise .25s ease both;
+}
+.tour-close {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--text);
+  background: rgba(255,255,255,.07);
+  font-size: 22px;
+  line-height: 1;
+}
+.tour-kicker {
+  color: #aee9ff;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  margin-bottom: 9px;
+}
+.tour-card h2 {
+  margin: 0 36px 10px 0;
+  font-size: 28px;
+  letter-spacing: -.05em;
+}
+.tour-card p {
+  margin: 0 0 14px;
+  color: #b5c7df;
+}
+.tour-hint {
+  display: flex;
+  gap: 9px;
+  align-items: flex-start;
+  border: 1px solid rgba(33, 212, 253, .20);
+  border-radius: 18px;
+  color: #d6f6ff;
+  background: rgba(33, 212, 253, .08);
+  padding: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+.tour-progress {
+  display: flex;
+  gap: 8px;
+  margin: 16px 0;
+}
+.tour-progress button {
+  height: 8px;
+  flex: 1;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .16);
+}
+.tour-progress button.active {
+  background: linear-gradient(90deg, var(--blue), var(--cyan));
+  box-shadow: 0 0 18px rgba(33, 212, 253, .42);
+}
+.tour-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.tour-actions .btn:disabled {
+  opacity: .42;
+  cursor: not-allowed;
+  transform: none;
+}
+.tour-active .aio-card {
+  transition: transform .22s ease, box-shadow .22s ease, border-color .22s ease, opacity .22s ease, filter .22s ease;
+}
+.tour-active .aio-card:not(.is-tour-focus) {
+  opacity: .45;
+  filter: saturate(.7) brightness(.82);
+}
+.is-tour-focus {
+  z-index: 85;
+  transform: translateY(-3px) scale(1.012);
+  border-color: rgba(174, 233, 255, .9) !important;
+  box-shadow:
+    0 0 0 2px rgba(33, 212, 253, .22),
+    0 0 0 8px rgba(33, 212, 253, .08),
+    0 28px 90px rgba(0, 0, 0, .52),
+    0 0 70px rgba(33, 212, 253, .32) !important;
+}
+
+@media (max-width: 900px) {
+  .workflow-track { align-items: flex-start; }
+  .workflow-track > svg { display: none; }
+  .tour-card { left: 18px; right: 18px; top: auto; bottom: 88px; width: auto; }
+  .floating-tutorial { right: 18px; bottom: 18px; }
+}
+@media (max-width: 640px) {
+  .workflow-track span { width: 100%; justify-content: flex-start; }
+  .section-ribbon { position: static; display: inline-flex; margin-bottom: 10px; border: 1px solid rgba(33,212,253,.28); border-radius: 999px; }
+  .aio-card-head { padding-right: 0; }
+  .tour-actions { flex-direction: column; }
+  .tour-actions .btn { width: 100%; }
+}

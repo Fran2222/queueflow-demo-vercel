@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
   Activity,
@@ -43,6 +43,94 @@ import {
   subscribeToState
 } from './lib/queueStore';
 import './styles.css';
+
+
+const queueSound = (() => {
+  let ctx = null;
+  let unlocked = false;
+
+  function getContext() {
+    if (typeof window === 'undefined') return null;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return null;
+    if (!ctx) ctx = new AudioContextClass();
+    return ctx;
+  }
+
+  function tone(frequency, start, duration, gainLevel = 0.08, type = 'sine') {
+    const audio = getContext();
+    if (!audio) return;
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(gainLevel, start + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.025);
+  }
+
+  async function unlock() {
+    const audio = getContext();
+    if (!audio) return false;
+    try {
+      if (audio.state === 'suspended') await audio.resume();
+      unlocked = true;
+      const t = audio.currentTime;
+      tone(660, t, 0.08, 0.045);
+      tone(990, t + 0.09, 0.09, 0.045);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  function play(kind = 'call') {
+    const audio = getContext();
+    if (!audio) return;
+    if (audio.state === 'suspended') {
+      audio.resume().then(() => play(kind)).catch(() => {});
+      return;
+    }
+    unlocked = true;
+    const t = audio.currentTime;
+    const patterns = {
+      call: [[880, 0, 0.11], [1320, 0.12, 0.16], [1040, 0.31, 0.12]],
+      recall: [[720, 0, 0.08], [720, 0.11, 0.08], [980, 0.22, 0.12]],
+      ticket: [[520, 0, 0.09], [760, 0.1, 0.1]],
+      done: [[520, 0, 0.08], [660, 0.09, 0.08], [880, 0.18, 0.12]],
+      pass: [[360, 0, 0.11], [420, 0.12, 0.1]],
+      reset: [[300, 0, 0.08], [260, 0.09, 0.08]]
+    };
+    (patterns[kind] || patterns.call).forEach(([freq, offset, duration]) => tone(freq, t + offset, duration));
+  }
+
+  function isUnlocked() {
+    return unlocked && !!ctx && ctx.state === 'running';
+  }
+
+  return { unlock, play, isUnlocked };
+})();
+
+function playQueueSound(kind) {
+  queueSound.play(kind);
+}
+
+function SoundToggle() {
+  const [enabled, setEnabled] = useState(() => queueSound.isUnlocked());
+  async function handleEnableSound() {
+    const ok = await queueSound.unlock();
+    setEnabled(ok || queueSound.isUnlocked());
+  }
+  return (
+    <button className="pill ghost sound-pill" onClick={handleEnableSound} title="Enable demo notification sound">
+      <BellRing size={15} /> {enabled ? 'Sound On' : 'Enable Sound'}
+    </button>
+  );
+}
 
 function useQueueState() {
   const [state, setState] = useState(() => getState());
@@ -102,6 +190,7 @@ function TopNav() {
           <button key={to} onClick={() => navigate(to)}>{label}</button>
         ))}
       </nav>
+      <SoundToggle />
       <button className="pill ghost" onClick={() => navigate('/demo')}>Launch Demo</button>
     </header>
   );
@@ -212,6 +301,7 @@ function KioskPage() {
 
   function handleGenerate(transaction) {
     const ticket = addTicket(service.id, transaction, priority);
+    playQueueSound('ticket');
     setGenerated(ticket);
     setTimeout(() => navigate(`/demo/ticket?id=${encodeURIComponent(ticket.id)}`), 350);
   }
@@ -324,6 +414,10 @@ function StaffPage() {
 
   function action(label, fn) {
     const result = fn();
+    if (result) {
+      const soundMap = { Called: 'call', Recalled: 'recall', Passed: 'pass', Forwarded: 'call', Done: 'done' };
+      playQueueSound(soundMap[label] || 'call');
+    }
     setToast(result ? `${label}: ${result.number}` : 'No active/waiting ticket available.');
     refresh();
   }
@@ -412,10 +506,20 @@ function MonitorPage() {
   const waiting = state.tickets.filter((ticket) => ticket.status === 'waiting').slice(0, 5);
   const [clock, setClock] = useState(new Date());
 
+  const lastServedNumber = useRef(null);
+
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (!headline?.number) return;
+    if (lastServedNumber.current && lastServedNumber.current !== headline.number) {
+      playQueueSound('call');
+    }
+    lastServedNumber.current = headline.number;
+  }, [headline?.number]);
 
   return (
     <Shell full>
@@ -425,7 +529,10 @@ function MonitorPage() {
             <div className="eyebrow"><Monitor size={16} /> Live Queue Display</div>
             <h1>Now Serving</h1>
           </div>
-          <strong>{clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+          <div className="monitor-actions">
+            <SoundToggle />
+            <strong>{clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</strong>
+          </div>
         </div>
 
         <section className="now-serving-stage glass-panel">
@@ -481,6 +588,7 @@ function AdminPage() {
 
   function handleReset() {
     resetDemo();
+    playQueueSound('reset');
     refresh();
   }
 
@@ -548,11 +656,54 @@ function AllInOnePage() {
   const [priority, setPriority] = useState(false);
   const [toast, setToast] = useState('Command center ready. Generate a ticket or call the next customer.');
   const [clock, setClock] = useState(new Date());
+  const [tourOpen, setTourOpen] = useState(false);
+  const [tourStep, setTourStep] = useState(0);
 
   useEffect(() => {
     const timer = setInterval(() => setClock(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const guideSteps = [
+    {
+      key: 'kiosk',
+      title: '1. Kiosk Ticket Generator',
+      text: 'This simulates the touchscreen kiosk. Choose a service area, select Regular or Priority, then click a transaction to generate a queue number.',
+      hint: 'Try creating a General Service or Priority Lane ticket first.'
+    },
+    {
+      key: 'queue',
+      title: '2. Waiting Queue',
+      text: 'Generated tickets appear here while waiting. Priority tickets move ahead of regular tickets, just like a real queue flow.',
+      hint: 'Notice how the list updates immediately after ticket creation.'
+    },
+    {
+      key: 'staff',
+      title: '3. Staff Console',
+      text: 'This is the counter-side view. Staff can call the next ticket, recall, pass, and mark the transaction as done.',
+      hint: 'Select a counter, then click Call Next to serve the next customer.'
+    },
+    {
+      key: 'monitor',
+      title: '4. Live Display Monitor',
+      text: 'This represents the TV/public monitor. It shows the latest called ticket and the counter where the customer should proceed.',
+      hint: 'After clicking Call Next, the large ticket number changes here.'
+    },
+    {
+      key: 'completed',
+      title: '5. Completed Tickets',
+      text: 'Finished tickets move here after staff clicks Done. This helps demonstrate the end-to-end queue lifecycle.',
+      hint: 'Serve a ticket, then click Done to move it into the completed list.'
+    },
+    {
+      key: 'activity',
+      title: '6. Activity Feed',
+      text: 'This records each demo action such as generated, called, recalled, passed, and completed tickets.',
+      hint: 'Use this panel when explaining what happened during the demo.'
+    }
+  ];
+  const currentGuide = guideSteps[tourStep];
+  const focusClass = (key) => tourOpen && currentGuide?.key === key ? 'is-tour-focus' : '';
 
   const metrics = getDashboardMetrics(state);
   const activeService = state.services.find((service) => service.id === selectedService) || state.services[0];
@@ -574,26 +725,37 @@ function AllInOnePage() {
 
   function runAction(label, fn) {
     const result = fn();
+    if (result) {
+      const soundMap = { Called: 'call', Recalled: 'recall', Passed: 'pass', Forwarded: 'call', Done: 'done' };
+      playQueueSound(soundMap[label] || 'call');
+    }
     setToast(result ? `${label}: ${result.number}` : 'No active/waiting ticket available.');
     refresh();
   }
 
   function generateTicket(transaction) {
     const ticket = addTicket(activeService.id, transaction, priority);
+    playQueueSound('ticket');
     setToast(`${ticket.number} generated from kiosk panel.`);
     refresh();
   }
 
   function handleReset() {
     resetDemo();
+    playQueueSound('reset');
     refresh();
     setToast('Demo data reset. Sample queue restored.');
+  }
+
+  function openTutorial() {
+    setTourStep(0);
+    setTourOpen(true);
   }
 
   return (
     <Shell full>
       <TopNav />
-      <main className="container control-room">
+      <main className={`container control-room ${tourOpen ? 'tour-active' : ''}`}>
         <section className="control-room-hero glass-panel">
           <div>
             <div className="eyebrow"><Cpu size={16} /> One-Page Operations Vision</div>
@@ -606,6 +768,24 @@ function AllInOnePage() {
           </div>
         </section>
 
+        <section className="workflow-steps glass-panel">
+          <div className="workflow-title">
+            <Sparkles size={17} />
+            <span>How this demo flows</span>
+          </div>
+          <div className="workflow-track">
+            <span><strong>01</strong> Customer gets a number from the kiosk</span>
+            <ArrowRight size={15} />
+            <span><strong>02</strong> Ticket waits in queue</span>
+            <ArrowRight size={15} />
+            <span><strong>03</strong> Staff calls the customer</span>
+            <ArrowRight size={15} />
+            <span><strong>04</strong> Public monitor updates live</span>
+            <ArrowRight size={15} />
+            <span><strong>05</strong> Ticket is completed</span>
+          </div>
+        </section>
+
         <section className="control-room-stats">
           <Metric label="Waiting" value={metrics.waiting} icon={<TimerReset />} />
           <Metric label="Serving" value={metrics.serving} icon={<BellRing />} />
@@ -614,11 +794,13 @@ function AllInOnePage() {
         </section>
 
         <section className="control-room-grid">
-          <article className="glass-panel aio-monitor aio-card">
+          <article className={`glass-panel aio-monitor aio-card section-frame ${focusClass('monitor')}`} data-section="Public TV Display">
+            <div className="section-ribbon">Public view</div>
             <div className="aio-card-head">
               <span><Monitor size={16} /> Live Display Monitor</span>
               <small>{serving.length} active</small>
             </div>
+            <p className="section-description">TV-style screen for waiting customers. It displays the latest called ticket and the assigned counter.</p>
             <div className="aio-now-serving">
               <div className="scanline" />
               <small>{headline?.serviceName || 'STANDBY'}</small>
@@ -638,13 +820,15 @@ function AllInOnePage() {
             </div>
           </article>
 
-          <article className="glass-panel aio-staff aio-card">
+          <article className={`glass-panel aio-staff aio-card section-frame ${focusClass('staff')}`} data-section="Counter Staff Side">
+            <div className="section-ribbon">Staff side</div>
             <div className="aio-card-head">
               <span><LayoutDashboard size={16} /> Staff Console</span>
               <select value={counterId} onChange={(event) => setCounterId(event.target.value)}>
                 {state.counters.map((counter) => <option key={counter.id} value={counter.id}>{counter.name}</option>)}
               </select>
             </div>
+            <p className="section-description">Counter operator view for serving customers. Use this to call, recall, pass, or complete tickets.</p>
             <div className="aio-current-ticket">
               <small>Currently Serving</small>
               <h3>{current?.number || 'Standby'}</h3>
@@ -659,11 +843,13 @@ function AllInOnePage() {
             <div className="aio-toast"><Activity size={16} /> {toast}</div>
           </article>
 
-          <article className="glass-panel aio-kiosk aio-card">
+          <article className={`glass-panel aio-kiosk aio-card section-frame ${focusClass('kiosk')}`} data-section="Customer Kiosk Side">
+            <div className="section-ribbon">Customer side</div>
             <div className="aio-card-head">
               <span><QrCode size={16} /> Kiosk Ticket Generator</span>
               <button className="mini-reset" onClick={handleReset}><RotateCcw size={14} /> Reset</button>
             </div>
+            <p className="section-description">Touchscreen kiosk preview where a customer selects a service and receives a queue number.</p>
             <div className="aio-service-pills">
               {state.services.map((service) => (
                 <button key={service.id} className={service.id === selectedService ? 'active' : ''} onClick={() => setSelectedService(service.id)}>
@@ -685,11 +871,13 @@ function AllInOnePage() {
             </div>
           </article>
 
-          <article className="glass-panel aio-queue aio-card">
+          <article className={`glass-panel aio-queue aio-card section-frame ${focusClass('queue')}`} data-section="Waiting Queue State">
+            <div className="section-ribbon">Queue state</div>
             <div className="aio-card-head">
               <span><TimerReset size={16} /> Waiting Queue</span>
               <small>{waiting.length} pending</small>
             </div>
+            <p className="section-description">All generated tickets stay here until a staff counter calls the next customer.</p>
             <div className="aio-list">
               {waiting.slice(0, 7).map((ticket) => (
                 <div key={ticket.id} className={ticket.priority ? 'priority' : ''}>
@@ -702,11 +890,13 @@ function AllInOnePage() {
             </div>
           </article>
 
-          <article className="glass-panel aio-completed aio-card">
+          <article className={`glass-panel aio-completed aio-card section-frame ${focusClass('completed')}`} data-section="Transaction Completion">
+            <div className="section-ribbon">Completed</div>
             <div className="aio-card-head">
               <span><CheckCircle2 size={16} /> Recently Completed</span>
               <small>{metrics.done} done</small>
             </div>
+            <p className="section-description">Tickets appear here once the staff side marks a customer transaction as done.</p>
             <div className="aio-list compact-list">
               {done.map((ticket) => (
                 <div key={ticket.id}>
@@ -719,11 +909,13 @@ function AllInOnePage() {
             </div>
           </article>
 
-          <article className="glass-panel aio-activity aio-card">
+          <article className={`glass-panel aio-activity aio-card section-frame ${focusClass('activity')}`} data-section="System Activity Log">
+            <div className="section-ribbon">Audit trail</div>
             <div className="aio-card-head">
               <span><Activity size={16} /> Activity Feed</span>
               <small>live local state</small>
             </div>
+            <p className="section-description">A running demo log showing every generated, called, recalled, passed, and completed queue action.</p>
             <div className="aio-feed">
               {state.activity.slice(0, 6).map((item) => (
                 <div key={item.id}>
@@ -735,6 +927,46 @@ function AllInOnePage() {
           </article>
         </section>
       </main>
+
+      <button className="floating-tutorial" onClick={openTutorial}>
+        <Wand2 size={18} /> Tutorial
+      </button>
+
+      {tourOpen && (
+        <div className="tour-overlay" role="dialog" aria-modal="true" aria-label="Queue demo tutorial">
+          <div className="tour-card glass-panel">
+            <button className="tour-close" onClick={() => setTourOpen(false)}>×</button>
+            <div className="tour-kicker">Guided workflow · {tourStep + 1} of {guideSteps.length}</div>
+            <h2>{currentGuide.title}</h2>
+            <p>{currentGuide.text}</p>
+            <div className="tour-hint"><Sparkles size={16} /> {currentGuide.hint}</div>
+            <div className="tour-progress">
+              {guideSteps.map((step, index) => (
+                <button
+                  key={step.key}
+                  className={index === tourStep ? 'active' : ''}
+                  onClick={() => setTourStep(index)}
+                  aria-label={`Go to tutorial step ${index + 1}`}
+                />
+              ))}
+            </div>
+            <div className="tour-actions">
+              <button className="btn secondary" onClick={() => setTourStep(Math.max(0, tourStep - 1))} disabled={tourStep === 0}>
+                <ChevronLeft size={16} /> Back
+              </button>
+              {tourStep < guideSteps.length - 1 ? (
+                <button className="btn primary" onClick={() => setTourStep(tourStep + 1)}>
+                  Next <ChevronRight size={16} />
+                </button>
+              ) : (
+                <button className="btn success" onClick={() => setTourOpen(false)}>
+                  Finish Tour <CheckCircle2 size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </Shell>
   );
 }
