@@ -835,23 +835,32 @@ select {
   50% { transform: translateY(-3px); box-shadow: 0 28px 70px rgba(33, 212, 253, .52); }
 }
 
+.tour-backdrop,
 .tour-overlay {
   position: fixed;
   inset: 0;
   z-index: 80;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 45%, transparent 20%, rgba(1, 7, 18, .44) 64%);
+  background:
+    radial-gradient(circle at 50% 45%, transparent 18%, rgba(1, 7, 18, .46) 62%),
+    linear-gradient(90deg, rgba(1, 7, 18, .20), rgba(1, 7, 18, .34));
 }
 .tour-card {
   position: fixed;
-  right: 24px;
   top: 112px;
-  width: min(420px, calc(100vw - 42px));
+  width: min(430px, calc(100vw - 42px));
   border-radius: 28px;
   padding: 24px;
   pointer-events: auto;
-  z-index: 100;
+  z-index: 140;
   animation: rise .25s ease both;
+}
+.tour-card.tour-right { right: 24px; left: auto; }
+.tour-card.tour-left { left: 24px; right: auto; }
+.tour-active .floating-tutorial {
+  opacity: .35;
+  pointer-events: none;
+  transform: translateY(4px) scale(.98);
 }
 .tour-close {
   position: absolute;
@@ -929,7 +938,7 @@ select {
   filter: saturate(.7) brightness(.82);
 }
 .is-tour-focus {
-  z-index: 85;
+  z-index: 110;
   transform: translateY(-3px) scale(1.012);
   border-color: rgba(174, 233, 255, .9) !important;
   box-shadow:
@@ -942,7 +951,9 @@ select {
 @media (max-width: 900px) {
   .workflow-track { align-items: flex-start; }
   .workflow-track > svg { display: none; }
-  .tour-card { left: 18px; right: 18px; top: auto; bottom: 88px; width: auto; }
+  .tour-card,
+  .tour-card.tour-left,
+  .tour-card.tour-right { left: 18px; right: 18px; top: auto; bottom: 88px; width: auto; }
   .floating-tutorial { right: 18px; bottom: 18px; }
 }
 @media (max-width: 640px) {

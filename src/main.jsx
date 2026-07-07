@@ -752,6 +752,20 @@ function AllInOnePage() {
     setTourOpen(true);
   }
 
+  useEffect(() => {
+    if (!tourOpen) return;
+    const timer = setTimeout(() => {
+      document.querySelector('.is-tour-focus')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center',
+        inline: 'nearest'
+      });
+    }, 80);
+    return () => clearTimeout(timer);
+  }, [tourOpen, tourStep]);
+
+  const tourSide = ['staff', 'activity'].includes(currentGuide?.key) ? 'tour-left' : 'tour-right';
+
   return (
     <Shell full>
       <TopNav />
@@ -933,8 +947,9 @@ function AllInOnePage() {
       </button>
 
       {tourOpen && (
-        <div className="tour-overlay" role="dialog" aria-modal="true" aria-label="Queue demo tutorial">
-          <div className="tour-card glass-panel">
+        <>
+          <div className="tour-backdrop" aria-hidden="true" />
+          <div className={`tour-card glass-panel ${tourSide}`} role="dialog" aria-modal="true" aria-label="Queue demo tutorial">
             <button className="tour-close" onClick={() => setTourOpen(false)}>×</button>
             <div className="tour-kicker">Guided workflow · {tourStep + 1} of {guideSteps.length}</div>
             <h2>{currentGuide.title}</h2>
@@ -965,7 +980,7 @@ function AllInOnePage() {
               )}
             </div>
           </div>
-        </div>
+        </>
       )}
     </Shell>
   );
