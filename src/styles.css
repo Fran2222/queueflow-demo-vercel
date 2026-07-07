@@ -963,3 +963,411 @@ select {
   .tour-actions { flex-direction: column; }
   .tour-actions .btn { width: 100%; }
 }
+
+/* Mobile responsive polish patch */
+@media (max-width: 1180px) {
+  .container,
+  .top-nav {
+    width: min(100% - 28px, 980px);
+  }
+  .hero {
+    grid-template-columns: 1fr;
+    padding-top: 48px;
+  }
+  .hero-visual {
+    min-height: 420px;
+  }
+  .feature-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .portal-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 980px) {
+  body {
+    overflow-x: hidden;
+  }
+  .top-nav {
+    height: auto;
+    min-height: 72px;
+    padding: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    border-radius: 22px;
+  }
+  .brand-lockup {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+  .top-nav nav {
+    order: 3;
+    width: 100%;
+    overflow-x: auto;
+    padding: 8px 2px 0;
+    gap: 8px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .top-nav nav::-webkit-scrollbar {
+    display: none;
+  }
+  .top-nav nav button,
+  .top-nav .pill {
+    white-space: nowrap;
+    flex: 0 0 auto;
+  }
+  .sound-pill {
+    order: 2;
+  }
+  .top-nav > .pill.ghost:not(.sound-pill) {
+    display: none;
+  }
+  h1 {
+    font-size: clamp(38px, 12vw, 68px);
+    line-height: .96;
+  }
+  .hero-copy p {
+    font-size: 16px;
+  }
+  .control-room {
+    padding-top: 28px;
+  }
+  .control-room-hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 22px;
+    border-radius: 26px;
+  }
+  .control-room-hero h1 {
+    font-size: clamp(34px, 10vw, 58px);
+  }
+  .control-room-clock {
+    width: 100%;
+    text-align: left;
+    padding: 16px;
+    border-radius: 20px;
+  }
+  .control-room-clock strong {
+    font-size: clamp(24px, 9vw, 38px);
+  }
+  .control-room-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .metric {
+    min-height: 120px;
+  }
+  .control-room-grid {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "monitor"
+      "kiosk"
+      "queue"
+      "staff"
+      "completed"
+      "activity";
+  }
+  .aio-card {
+    min-width: 0;
+  }
+  .aio-monitor,
+  .aio-staff,
+  .aio-kiosk,
+  .aio-queue,
+  .aio-completed,
+  .aio-activity {
+    min-height: auto;
+  }
+  .now-serving-stage {
+    min-height: 210px;
+  }
+  .now-serving-stage strong {
+    font-size: clamp(60px, 20vw, 122px);
+    letter-spacing: -.08em;
+  }
+  .aio-counter-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .aio-service-pills,
+  .aio-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .aio-service-pills button,
+  .aio-actions .btn {
+    min-width: 0;
+  }
+  .aio-list,
+  .aio-feed,
+  .compact-list {
+    max-height: none;
+    overflow: visible;
+  }
+  .workflow-steps {
+    padding: 16px;
+    border-radius: 22px;
+  }
+  .workflow-track {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  .workflow-track > svg {
+    display: none;
+  }
+  .workflow-track span {
+    width: 100%;
+    border-radius: 16px;
+    min-height: 42px;
+  }
+}
+
+@media (max-width: 680px) {
+  .container,
+  .top-nav {
+    width: calc(100% - 18px);
+  }
+  .app-shell {
+    overflow: visible;
+  }
+  .top-nav {
+    margin-top: 10px;
+    border-radius: 18px;
+  }
+  .brand-mark,
+  .portal-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 13px;
+  }
+  .brand-lockup strong {
+    font-size: 14px;
+  }
+  .brand-lockup small {
+    font-size: 11px;
+  }
+  .sound-pill {
+    padding: 9px 11px;
+    font-size: 12px;
+  }
+  .top-nav nav button {
+    padding: 9px 11px;
+    font-size: 13px;
+  }
+  .hero {
+    padding: 34px 0 24px;
+  }
+  .cta-row .btn,
+  .ticket-actions .btn {
+    width: 100%;
+  }
+  .trust-row {
+    gap: 10px;
+  }
+  .trust-row span {
+    width: 100%;
+  }
+  .hero-visual {
+    min-height: 360px;
+    border-radius: 28px;
+    padding: 18px;
+  }
+  .holo-ticket {
+    width: calc(100% - 32px);
+    padding: 30px 14px;
+  }
+  .holo-ticket strong {
+    font-size: clamp(56px, 24vw, 90px);
+  }
+  .mini-board {
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    grid-template-columns: 1fr;
+  }
+  .feature-grid,
+  .portal-grid,
+  .service-grid,
+  .metrics-row,
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-head {
+    padding-top: 42px;
+  }
+  .kiosk-wrap,
+  .ticket-page {
+    padding: 22px 10px;
+    place-items: start center;
+  }
+  .kiosk-card {
+    min-height: auto;
+    padding: 22px;
+    border-radius: 28px;
+  }
+  .kiosk-header {
+    flex-direction: column;
+    text-align: center;
+    margin-bottom: 22px;
+  }
+  .service-tile {
+    min-height: 190px;
+    padding: 20px;
+  }
+  .ticket-paper {
+    width: 100%;
+    max-width: 360px;
+  }
+  .corner-back {
+    position: static;
+    margin: 12px 0;
+  }
+  .monitor-layout {
+    padding: 18px 10px;
+  }
+  .monitor-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .monitor-stage strong {
+    font-size: clamp(72px, 26vw, 150px);
+  }
+  .control-room {
+    padding-bottom: 96px;
+  }
+  .control-room-stats {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .metric {
+    padding: 14px;
+    min-height: 104px;
+    border-radius: 20px;
+  }
+  .metric strong {
+    font-size: 28px;
+  }
+  .control-room-grid {
+    gap: 12px;
+  }
+  .aio-card {
+    border-radius: 24px;
+    padding: 16px;
+  }
+  .section-frame {
+    box-shadow:
+      0 18px 48px rgba(0,0,0,.32),
+      inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  .section-description {
+    max-width: 100%;
+    font-size: 12px;
+  }
+  .aio-card-head {
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .aio-card-head > span {
+    font-size: 15px;
+  }
+  .aio-card-head small {
+    font-size: 10px;
+  }
+  .now-serving-stage {
+    min-height: 170px;
+    padding: 20px 12px;
+    border-radius: 22px;
+  }
+  .now-serving-stage strong {
+    font-size: clamp(54px, 18vw, 88px);
+  }
+  .aio-counter-strip {
+    grid-template-columns: 1fr;
+  }
+  .aio-service-pills,
+  .aio-actions {
+    grid-template-columns: 1fr;
+  }
+  .aio-actions .btn {
+    min-height: 46px;
+  }
+  .aio-transaction {
+    min-height: 48px;
+    padding: 0 12px;
+  }
+  .serving-mini {
+    min-height: 170px;
+    padding: 20px 12px;
+  }
+  .serving-mini strong {
+    font-size: clamp(44px, 16vw, 72px);
+  }
+  .floating-tutorial {
+    right: 14px;
+    left: 14px;
+    bottom: 14px;
+    justify-content: center;
+    min-height: 52px;
+  }
+  .tour-card,
+  .tour-card.tour-left,
+  .tour-card.tour-right {
+    left: 10px;
+    right: 10px;
+    bottom: 76px;
+    top: auto;
+    width: auto;
+    padding: 18px;
+    border-radius: 22px;
+    max-height: calc(100vh - 118px);
+    overflow: auto;
+  }
+  .tour-card h2 {
+    font-size: 22px;
+    margin-right: 32px;
+  }
+  .tour-actions {
+    flex-direction: column;
+  }
+  .tour-actions .btn {
+    width: 100%;
+  }
+  .is-tour-focus {
+    transform: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .container,
+  .top-nav {
+    width: calc(100% - 12px);
+  }
+  .eyebrow {
+    max-width: 100%;
+    font-size: 10px;
+    letter-spacing: .09em;
+  }
+  h1 {
+    font-size: clamp(34px, 14vw, 52px);
+  }
+  .control-room-hero,
+  .workflow-steps,
+  .aio-card,
+  .metric {
+    border-radius: 18px;
+  }
+  .control-room-stats {
+    grid-template-columns: 1fr;
+  }
+  .now-serving-stage strong,
+  .holo-ticket strong,
+  .monitor-stage strong {
+    letter-spacing: -.06em;
+  }
+  .now-serving-stage strong {
+    font-size: clamp(48px, 22vw, 76px);
+  }
+  .aio-list strong {
+    font-size: 18px;
+  }
+}

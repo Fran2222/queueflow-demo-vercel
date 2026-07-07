@@ -1,26 +1,70 @@
-# QueueFlow Tutorial Visibility Hotfix
+# QueueFlow Interactive Demo
 
-This patch fixes the all-in-one control room tutorial overlay so the guide card is no longer covered by the highlighted module.
+A safe, frontend-only queue management system demo designed for GitHub and Vercel deployment.
 
-## What changed
+This repository contains **no client branding, no database, no backend credentials, no printer scripts, no local machine paths, and no real user data**. It is built as an interactive product preview using browser localStorage.
 
-- Tutorial card now uses a higher layer than highlighted modules.
-- The dark backdrop is separated from the tutorial card.
-- Highlighted modules stay visible while the tutorial text stays readable.
-- The tutorial card moves left/right depending on the focused section.
-- The page auto-scrolls the focused section into view when moving through tutorial steps.
-- Existing audio fix and all-in-one command center behavior are preserved.
+## Features
 
-## Upload to GitHub
+- Animated modern landing page
+- Kiosk service selection
+- Ticket generation
+- Ticket preview / print mockup
+- Staff queue console
+- Live monitor display
+- Admin demo panel
+- Demo data reset
+- Cross-tab demo sync using localStorage and BroadcastChannel
 
-Upload/overwrite these files only:
+## Tech Stack
 
-- `README.md`
-- `src/main.jsx`
-- `src/styles.css`
+- Vite
+- React
+- CSS animations
+- localStorage mock data
 
-Commit message suggestion:
+## Run Locally
 
-`Fix tutorial overlay visibility`
+```bash
+npm install
+npm run dev
+```
 
-After committing to `main`, Vercel should redeploy automatically.
+Open the local URL shown in the terminal.
+
+## Deploy to Vercel
+
+1. Push this project to a GitHub repository.
+2. Go to Vercel.
+3. Click **Add New Project**.
+4. Import the GitHub repository.
+5. Framework should be detected as **Vite**.
+6. Build command: `npm run build`
+7. Output directory: `dist`
+8. Deploy.
+
+## Demo Routes
+
+- `/` - landing page
+- `/demo` - demo launcher
+- `/demo/kiosk` - kiosk ticket flow
+- `/demo/staff` - staff console
+- `/demo/monitor` - live display monitor
+- `/demo/admin` - admin preview
+
+## Safety Notes
+
+This is a frontend-only product preview. It is not connected to a database or production backend. Data is stored only in the visitor's browser localStorage and can be reset anytime from the Admin Demo page.
+
+## One-Page Command Center
+
+Added `/demo/control-room` as the recommended demo view. It combines kiosk ticket generation, staff counter controls, live monitor display, active counters, waiting queue, completed tickets, and activity feed in one page for client walkthroughs.
+
+
+## Demo sound
+
+The demo uses browser Web Audio for notification sounds, so no audio files or client assets are required. Browser autoplay rules may block sound until a user interaction happens. Click **Enable Sound** once on the demo page or monitor page, then ticket calls, recalls, completions, and ticket generation will play notification tones.
+
+## Mobile Responsive Update
+
+This version includes mobile-friendly layout improvements for the public landing page, demo portal, kiosk, monitor, staff/admin pages, and especially the all-in-one control room. The demo now stacks modules cleanly on phones, keeps tutorial overlays visible, and reduces oversized display typography on small screens.
