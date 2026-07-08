@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react'
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import {
@@ -1014,4 +1015,9 @@ function App() {
   }, [path]);
 }
 
-createRoot(document.getElementById('root')).render(<App />);
+createRoot(document.getElementById('root')).render(
+  <>
+    <App />
+    <Analytics />
+  </>
+)
